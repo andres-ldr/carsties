@@ -3,4 +3,4 @@
 	url = git@github.com:andres-ldr/AuctionService.git
 [submodule "src/SearchService"]
 	path = src/SearchService
-	url = git@github.com:andres-ldr/AuctionService.git
+	url = git@github.com:andres-ldr/SearchService.git
