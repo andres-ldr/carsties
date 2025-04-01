@@ -1,0 +1,24 @@
+[submodule "src/AuctionService"]
+	path = src/AuctionService
+	url = git@github.com:andres-ldr/AuctionService.git
+[submodule "src/BiddingService"]
+	path = src/BiddingService
+	url = git@github.com:andres-ldr/BiddingService.git
+[submodule "src/Contracts"]
+	path = src/Contracts
+	url = git@github.com:andres-ldr/CarstiesContracts.git
+[submodule "src/GatewayService"]
+	path = src/GatewayService
+	url = git@github.com:andres-ldr/GatewayService.git
+[submodule "src/IdentityService"]
+	path = src/IdentityService
+	url = git@github.com:andres-ldr/IdentityService.git
+[submodule "src/NotificationService"]
+	path = src/NotificationService
+	url = git@github.com:andres-ldr/NotificationService.git
+[submodule "src/SearchService"]
+	path = src/SearchService
+	url = git@github.com:andres-ldr/SearchService.git
+[submodule "frontend/web-app"]
+	path = frontend/web-app
+	url = git@github.com:andres-ldr/CarstiesClient.git
