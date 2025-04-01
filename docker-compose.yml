@@ -1,0 +1,160 @@
+services:
+  postgres:
+    image: postgres:15.3-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/var/lib/mongo/data
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=mongo
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+  auction-svc:
+    image: zzkal/auction-svc:latest
+    build:
+      context: .
+      dockerfile: src/AuctionService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:7777
+      - RabbitMq__Host=rabbitmq
+      - ConnectionStrings__DefaultConnection=Server=postgres;User Id=postgres;Password=postgres;Database=auctions
+      - IdentityServiceUrl=http://identity-svc
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+      - Kestrel__Endpoints__Grpc__Url=http://+:7777
+      - Kestrel__Endpoints__WebApi__Protocols=Http1
+      - Kestrel__Endpoints__WebApi__Url=Http://+:80
+    ports:
+      - 7001:80
+      - 7777:7777
+    depends_on:
+      - postgres
+      - rabbitmq
+  search-svc:
+    image: zzkal/search-svc:latest
+    build:
+      context: .
+      dockerfile: src/SearchService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMq__Host=rabbitmq
+      - ConnectionStrings__MongoDbConnection=mongodb://mongo:mongo@mongo # atento al nombre de los servicios y de las contraseñas
+      - AuctionServiceUrl=http://auction-svc
+    ports:
+      - 7002:80
+    depends_on:
+      - mongo
+      - rabbitmq
+  identity-svc:
+    image: zzkal/identity-svc:latest
+    build:
+      context: .
+      dockerfile: src/IdentityService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=postgres;User Id=postgres;Password=postgres;Database=identity
+      # - IssuerUri=http://localhost:5000
+      - IssuerUri=https://id.carsties.local
+      # - ClientApp=http://localhost:3000
+      - ClientApp=https://app.carsties.local
+      - VIRTUAL_HOST=id.carsties.local
+    # ports:
+    #   - 5000:80
+    depends_on:
+      - postgres
+  gateway-svc:
+    image: zzkal/gateway-svc:latest
+    build:
+      context: .
+      dockerfile: src/GatewayService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+      - VIRTUAL_HOST=api.carsties.local
+      - ClientApp=https://app.carsties.local
+      # - ClientApp=http://localhost:3000
+    # ports:
+    #   - 6001:80
+  bid-svc:
+    image: zzkal/bid-svc:latest
+    build:
+      context: .
+      dockerfile: src/BiddingService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMq__Host=rabbitmq
+      - ConnectionStrings__BidDbConnection=mongodb://mongo:mongo@mongo # atento al nombre de los servicios y de las contraseñas
+      - IdentityServiceUrl=http://identity-svc
+      - GrpcAuction=http://auction-svc:7777
+    ports:
+      - 7003:80
+    depends_on:
+      - mongo
+      - rabbitmq
+  notify-svc:
+    image: zzkal/notify-svc:latest
+    build:
+      context: .
+      dockerfile: src/NotificationService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMq__Host=rabbitmq
+    ports:
+      - 7004:80
+    depends_on:
+      - rabbitmq
+  web-app:
+    image: zzkal/web-app
+    build:
+      context: .
+      dockerfile: frontend/web-app/Dockerfile
+    volumes:
+      - /var/lib/web/data
+    # ports:
+    #   - 3000:3000
+    environment:
+      - AUTH_SECRET="LtRVeotU1pDPedcddzA7vcSuzFXOkJYE49VK3YGOOZ8="
+      # - AUTH_URL=http://localhost:3000
+      - AUTH_URL=https://app.carsties.local
+      - AUTH_URL_INTERNAL=http://web-app:3000
+      - API_URL=http://gateway-svc/
+      # - ID_URL=http://localhost:5000
+      - ID_URL=https://id.carsties.local
+      - ID_URL_INTERNAL=http://identity-svc
+      # - NOTIFY_URL=http://localhost:6001/notifications
+      - NOTIFY_URL=https://api.carsties.local/notifications
+      - VIRTUAL_HOST=app.carsties.local
+      - VIRTUAL_PORT=3000
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+      - 443:443 # Specify port for certs
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ${PWD}/devcerts:/etc/nginx/certs # specify the certs path
+
+volumes:
+  postgres-data:
+  mongo-data:
