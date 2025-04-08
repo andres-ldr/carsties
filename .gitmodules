@@ -3,22 +3,22 @@
 	url = git@github.com:andres-ldr/AuctionService.git
 [submodule "src/BiddingService"]
 	path = src/BiddingService
-	url = git@github.com:andres-ldr/BiddingService.git
+	url = git@github.com:andres-ldr/CarstiesBiddingService.git
 [submodule "src/Contracts"]
 	path = src/Contracts
 	url = git@github.com:andres-ldr/CarstiesContracts.git
 [submodule "src/GatewayService"]
 	path = src/GatewayService
-	url = git@github.com:andres-ldr/GatewayService.git
+	url = git@github.com:andres-ldr/CarstiesGatewayService.git
 [submodule "src/IdentityService"]
 	path = src/IdentityService
-	url = git@github.com:andres-ldr/IdentityService.git
+	url = git@github.com:andres-ldr/CarstiesIdentityService.git
 [submodule "src/NotificationService"]
 	path = src/NotificationService
-	url = git@github.com:andres-ldr/NotificationService.git
+	url = git@github.com:andres-ldr/CarstiesNotificationService.git
 [submodule "src/SearchService"]
 	path = src/SearchService
-	url = git@github.com:andres-ldr/SearchService.git
+	url = git@github.com:andres-ldr/CarstiesSearchService.git
 [submodule "frontend/web-app"]
 	path = frontend/web-app
 	url = git@github.com:andres-ldr/CarstiesClient.git
